@@ -4,9 +4,9 @@
  * Semua data disimpan di localStorage (tanpa backend).
  */
 
-/*
+/* 
    UTILITAS UMUM
-  */
+    */
 
 /** Ambil satu elemen; lempar error jika tidak ada (membantu debugging). */
 function $(selector) {
@@ -84,9 +84,9 @@ function actionButton(label, icon, extraClass, onClick) {
   return btn;
 }
 
-/* =====================================================================
+/* 
    MODAL (dipakai semua fitur)
-   ===================================================================== */
+    */
 
 function openModal(id) {
   const modal = $(`#${id}`);
@@ -141,8 +141,23 @@ const panels = {
   quiz: $("#panel-quiz"),
 };
 
-/** Aktifkan satu tab, sembunyikan yang lain, simpan pilihan ke localStorage. */
-function switchTab(name) {
+/** Pemetaan nama tab ↔ path URL publik (dipakai untuk audit halaman / SPA routing). */
+const TAB_PATHS = {
+  expense: "/pengeluaran",
+  bookmark: "/bookmark",
+  quiz: "/kuis",
+};
+function pathToTab(pathname) {
+  const entry = Object.entries(TAB_PATHS).find(([, path]) => path === pathname);
+  return entry ? entry[0] : "expense"; // "/" atau path tak dikenal → tab default
+}
+
+/**
+ * Aktifkan satu tab, sembunyikan yang lain, simpan pilihan ke localStorage.
+ * updateUrl=true akan mengubah path URL (dipakai saat user klik tab),
+ * updateUrl=false dipakai saat inisialisasi awal / navigasi back-forward.
+ */
+function switchTab(name, updateUrl = true) {
   if (!panels[name]) name = "expense";
 
   Object.entries(panels).forEach(([key, panel]) => {
@@ -163,11 +178,19 @@ function switchTab(name) {
   } catch {
     /* abaikan */
   }
+
+  if (updateUrl) {
+    const path = TAB_PATHS[name] || "/";
+    if (location.pathname !== path) history.pushState({ tab: name }, "", path);
+  }
 }
 
 tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
+
+// Tombol back/forward browser tetap membuka tab yang sesuai
+window.addEventListener("popstate", () => switchTab(pathToTab(location.pathname), false));
 
 /* 
    FITUR 1 — EXPENSE TRACKER
@@ -546,7 +569,7 @@ bmSort.addEventListener("change", renderBookmarks);
 
 renderBookmarks();
 
-/* 
+/*
    FITUR 3 — QUIZ APP
     */
 
@@ -757,7 +780,14 @@ showHighScore();
 showQuizScreen("start");
 
 /* 
-   INISIALISASI — pulihkan tab terakhir
-    */
+   INISIALISASI — pulihkan tab sesuai URL, atau tab terakhir jika di roo */
 
-switchTab(localStorage.getItem(TAB_KEY) || "expense");
+const atRoot = location.pathname === "/" || location.pathname === "";
+const initialTab = atRoot ? localStorage.getItem(TAB_KEY) || "expense" : pathToTab(location.pathname);
+
+switchTab(initialTab, false); // false: jangan pushState, cukup ganti path yang sudah ada
+
+// Jika dibuka di "/", ganti URL agar sesuai tab yang dipulihkan (replaceState: tidak menambah riwayat back).
+if (atRoot) {
+  history.replaceState({ tab: initialTab }, "", TAB_PATHS[initialTab] || "/");
+}
