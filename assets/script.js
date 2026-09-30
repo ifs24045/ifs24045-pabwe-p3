@@ -96,7 +96,7 @@ function actionButton(label, iconName, extraClass, onClick) {
   return btn;
 }
 
-/* \
+/* 
    MODAL (dipakai semua fitur)
     */
 
