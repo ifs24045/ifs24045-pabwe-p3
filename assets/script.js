@@ -74,17 +74,29 @@ function el(tag, className = "", text = "") {
   return node;
 }
 
+/** Buat elemen SVG ikon yang menunjuk ke sprite <symbol> di index.html. */
+function svgIcon(name) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const use = document.createElementNS(NS, "use");
+  use.setAttribute("href", `#icon-${name}`);
+  svg.append(use);
+  return svg;
+}
+
 /** Tombol kecil Ubah / Hapus. */
-function actionButton(label, icon, extraClass, onClick) {
+function actionButton(label, iconName, extraClass, onClick) {
   const btn = el("button", `btn-ghost ${extraClass}`);
   btn.type = "button";
-  const i = el("i", `ti ${icon}`);
-  btn.append(i, document.createTextNode(label));
+  btn.append(svgIcon(iconName), document.createTextNode(label));
   btn.addEventListener("click", onClick);
   return btn;
 }
 
-/* 
+/* \
    MODAL (dipakai semua fitur)
     */
 
@@ -320,7 +332,7 @@ function renderExpenses() {
     meta.append(
       el("span", `rounded-md px-2 py-0.5 font-semibold ${isIncome ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`, isIncome ? "Pemasukan" : "Pengeluaran"),
       el("span", "rounded-md bg-moss-100 px-2 py-0.5 font-medium text-moss-800", t.category),
-      el("span", "text-slate-500", formatDate(t.date))
+      el("span", "text-slate-600", formatDate(t.date))
     );
     info.append(meta);
 
@@ -332,8 +344,8 @@ function renderExpenses() {
 
     const actions = el("div", "flex gap-1.5 shrink-0");
     actions.append(
-      actionButton("Ubah", "ti-pencil", "", () => openExpenseEdit(t.id)),
-      actionButton("Hapus", "ti-trash", "text-rose-700", () =>
+      actionButton("Ubah", "pencil", "", () => openExpenseEdit(t.id)),
+      actionButton("Hapus", "trash", "text-rose-700", () =>
         askDelete(`"${t.title}"`, () => {
           expenses = expenses.filter((x) => x.id !== t.id);
           saveExpenses();
@@ -496,7 +508,7 @@ function renderBookmarks() {
     link.target = "_blank";
     link.rel = "noopener noreferrer";
 
-    const urlLink = el("a", "mt-0.5 text-xs text-slate-500 hover:underline break-all", b.url);
+    const urlLink = el("a", "mt-0.5 text-xs text-slate-600 hover:underline break-all", b.url);
     urlLink.href = b.url;
     urlLink.target = "_blank";
     urlLink.rel = "noopener noreferrer";
@@ -508,8 +520,8 @@ function renderBookmarks() {
 
     const actions = el("div", "mt-3 flex gap-1.5 pt-1");
     actions.append(
-      actionButton("Ubah", "ti-pencil", "", () => openBookmarkEdit(b.id)),
-      actionButton("Hapus", "ti-trash", "text-rose-700", () =>
+      actionButton("Ubah", "pencil", "", () => openBookmarkEdit(b.id)),
+      actionButton("Hapus", "trash", "text-rose-700", () =>
         askDelete(`"${b.title}"`, () => {
           bookmarks = bookmarks.filter((x) => x.id !== b.id);
           saveBookmarks();
@@ -569,7 +581,7 @@ bmSort.addEventListener("change", renderBookmarks);
 
 renderBookmarks();
 
-/*
+/* 
    FITUR 3 — QUIZ APP
     */
 
@@ -780,7 +792,8 @@ showHighScore();
 showQuizScreen("start");
 
 /* 
-   INISIALISASI — pulihkan tab sesuai URL, atau tab terakhir jika di roo */
+   INISIALISASI — pulihkan tab sesuai URL, atau tab terakhir jika di root
+    */
 
 const atRoot = location.pathname === "/" || location.pathname === "";
 const initialTab = atRoot ? localStorage.getItem(TAB_KEY) || "expense" : pathToTab(location.pathname);

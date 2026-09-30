@@ -4,9 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SakuKampus — Praktikum 3 PABWE</title>
+  <meta
+    name="description"
+    content="SakuKampus: catat uang saku harian, simpan tautan kuliah favorit, dan uji pemahaman web dasar lewat kuis interaktif — semua tersimpan di browser tanpa server."
+  />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%92%3C/text%3E%3C/svg%3E" />
 
-  <!-- Tailwind CSS (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Tailwind CSS (CDN). defer: agar tidak memblokir parsing HTML awal. -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <style type="text/tailwindcss">
   @theme {
     --font-sans: "Figtree", sans-serif;
@@ -20,19 +25,35 @@
   }
 </style>
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: dimuat non-blocking (preload lalu diaktifkan sebagai stylesheet) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"
   />
-
-  <!-- Tabler Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"
+    media="print"
+    onload="this.media='all'"
+  />
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"
+    />
+  </noscript>
 
   <style>
     body { background: #e9efec; }
+    /* Ikon SVG inline (menggantikan icon-font eksternal demi performa) */
+    .icon {
+      width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em;
+      flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
     .field {
       width: 100%; border-radius: 0.5rem; border: 1px solid #b9c9c2; background: #fff;
       padding: 0.6rem 0.75rem; font-size: 0.875rem;
@@ -57,6 +78,67 @@
   </style>
 </head>
 <body class="font-sans text-ink min-h-screen">
+  <!-- Sprite ikon SVG: satu file, tanpa request jaringan tambahan -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <symbol id="icon-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h13A1.5 1.5 0 0 1 19 7.5V9h1.5A1.5 1.5 0 0 1 22 10.5v7a1.5 1.5 0 0 1-1.5 1.5h-16A1.5 1.5 0 0 1 3 17.5v-10Z" />
+        <circle cx="17" cy="14" r="1" fill="currentColor" stroke="none" />
+      </symbol>
+      <symbol id="icon-bookmarks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3h8a1 1 0 0 1 1 1v14l-5-3-4 3V4a1 1 0 0 1 1-1Z" opacity=".45" />
+        <path d="M6 6h8a1 1 0 0 1 1 1v14l-5-3-4 3V7a1 1 0 0 1 1-1Z" />
+      </symbol>
+      <symbol id="icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0-4 10.472c.667.61 1 1.363 1 2.028V16h6v-.5c0-.665.333-1.419 1-2.028A6 6 0 0 0 12 3Z" />
+        <path d="M10 19h4" />
+        <path d="M10.5 21.5h3" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </symbol>
+      <symbol id="icon-bookmark-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 4h9a1 1 0 0 1 1 1v15l-5.5-3.5L5 20V5a1 1 0 0 1 1-1Z" />
+        <path d="M9.5 8.5h4" />
+        <path d="M11.5 6.5v4" />
+      </symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </symbol>
+      <symbol id="icon-player-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M10 8.5l5.5 3.5-5.5 3.5v-7Z" fill="currentColor" stroke="none" />
+      </symbol>
+      <symbol id="icon-device-floppy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 4h9l4 4v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+        <path d="M9 4v4h6V4" />
+        <path d="M9 20v-5h6v5" />
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 12a7.5 7.5 0 0 1 13.5-4.5M19.5 12a7.5 7.5 0 0 1-13.5 4.5" />
+        <path d="M17 4v4h-4" />
+        <path d="M7 20v-4h4" />
+      </symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+        <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+      </symbol>
+      <symbol id="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </symbol>
+      <symbol id="icon-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v4" />
+        <path d="M12 16h.01" />
+      </symbol>
+    </defs>
+  </svg>
+
   <div class="max-w-4xl mx-auto px-4 py-8 sm:py-12">
 
     <!-- Header -->
@@ -69,36 +151,36 @@
 
     <!-- Navigasi tab -->
     <nav class="flex gap-1 p-1 bg-white border border-moss-100 rounded-xl mb-6" role="tablist" aria-label="Fitur aplikasi">
-      <button type="button" role="tab" data-tab="expense" aria-selected="true"
+      <button type="button" id="tab-expense" role="tab" data-tab="expense" aria-selected="true" aria-controls="panel-expense"
         class="tab-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition">
-        <i class="ti ti-wallet text-lg"></i>
+        <svg class="icon text-lg" aria-hidden="true" focusable="false"><use href="#icon-wallet"></use></svg>
         <span class="hidden sm:inline">Pengeluaran</span><span class="sm:hidden">Kas</span>
       </button>
-      <button type="button" role="tab" data-tab="bookmark" aria-selected="false"
+      <button type="button" id="tab-bookmark" role="tab" data-tab="bookmark" aria-selected="false" aria-controls="panel-bookmark"
         class="tab-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition">
-        <i class="ti ti-bookmarks text-lg"></i>
+        <svg class="icon text-lg" aria-hidden="true" focusable="false"><use href="#icon-bookmarks"></use></svg>
         <span class="hidden sm:inline">Bookmark</span><span class="sm:hidden">Link</span>
       </button>
-      <button type="button" role="tab" data-tab="quiz" aria-selected="false"
+      <button type="button" id="tab-quiz" role="tab" data-tab="quiz" aria-selected="false" aria-controls="panel-quiz"
         class="tab-btn flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition">
-        <i class="ti ti-bulb text-lg"></i>
+        <svg class="icon text-lg" aria-hidden="true" focusable="false"><use href="#icon-bulb"></use></svg>
         <span class="hidden sm:inline">Kuis</span><span class="sm:hidden">Kuis</span>
       </button>
     </nav>
 
     <main>
       <!-- ================= PANEL 1: EXPENSE TRACKER ================= -->
-      <section id="panel-expense" class="space-y-5" role="tabpanel" aria-labelledby="expense-heading">
+      <section id="panel-expense" class="space-y-5" role="tabpanel" aria-labelledby="tab-expense" tabindex="0">
         <h2 id="expense-heading" class="sr-only">Catatan Pengeluaran Harian</h2>
 
         <!-- Ringkasan -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div class="rounded-xl bg-white border border-moss-100 px-4 py-3">
-            <p class="text-xs font-medium text-slate-500">Total pemasukan</p>
+            <p class="text-xs font-medium text-slate-600">Total pemasukan</p>
             <p id="sum-income" class="font-display text-xl font-bold text-emerald-700">Rp0</p>
           </div>
           <div class="rounded-xl bg-white border border-moss-100 px-4 py-3">
-            <p class="text-xs font-medium text-slate-500">Total pengeluaran</p>
+            <p class="text-xs font-medium text-slate-600">Total pengeluaran</p>
             <p id="sum-expense" class="font-display text-xl font-bold text-rose-700">Rp0</p>
           </div>
           <div class="rounded-xl bg-ink text-white px-4 py-3">
@@ -136,7 +218,7 @@
             </div>
             <p id="ex-error" class="hidden sm:col-span-6 text-sm text-rose-700" role="alert"></p>
             <div class="sm:col-span-6">
-              <button type="submit" class="btn-primary"><i class="ti ti-plus"></i> Tambah transaksi</button>
+              <button type="submit" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-plus"></use></svg> Tambah transaksi</button>
             </div>
           </form>
         </div>
@@ -172,7 +254,7 @@
           </div>
 
           <div id="ex-empty" class="hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm items-start gap-2" role="alert">
-            <i class="ti ti-alert-circle text-lg shrink-0"></i>
+            <svg class="icon text-lg shrink-0" aria-hidden="true" focusable="false"><use href="#icon-alert-circle"></use></svg>
             <span>Belum ada transaksi. Isi formulir di atas untuk mencatat transaksi pertama.</span>
           </div>
           <ul id="ex-list" class="space-y-2"></ul>
@@ -180,7 +262,7 @@
       </section>
 
       <!-- ================= PANEL 2: BOOKMARK MANAGER ================= -->
-      <section id="panel-bookmark" class="hidden space-y-5" role="tabpanel" aria-labelledby="bookmark-heading">
+      <section id="panel-bookmark" class="hidden space-y-5" role="tabpanel" aria-labelledby="tab-bookmark" tabindex="0">
         <h2 id="bookmark-heading" class="sr-only">Bookmark dan Link Manager</h2>
 
         <div class="bg-white border border-moss-100 rounded-2xl p-5">
@@ -204,7 +286,7 @@
             </div>
             <p id="bm-error" class="hidden sm:col-span-2 text-sm text-rose-700" role="alert"></p>
             <div class="sm:col-span-2">
-              <button type="submit" class="btn-primary"><i class="ti ti-bookmark-plus"></i> Simpan bookmark</button>
+              <button type="submit" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-bookmark-plus"></use></svg> Simpan bookmark</button>
             </div>
           </form>
         </div>
@@ -226,7 +308,7 @@
           </div>
 
           <div id="bm-empty" class="hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm items-start gap-2" role="alert">
-            <i class="ti ti-alert-circle text-lg shrink-0"></i>
+            <svg class="icon text-lg shrink-0" aria-hidden="true" focusable="false"><use href="#icon-alert-circle"></use></svg>
             <span>Belum ada bookmark. Simpan tautan pertamamu lewat formulir di atas.</span>
           </div>
           <ul id="bm-list" class="grid gap-3 sm:grid-cols-2"></ul>
@@ -234,7 +316,7 @@
       </section>
 
       <!-- ================= PANEL 3: QUIZ ================= -->
-      <section id="panel-quiz" class="hidden space-y-5" role="tabpanel" aria-labelledby="quiz-heading">
+      <section id="panel-quiz" class="hidden space-y-5" role="tabpanel" aria-labelledby="tab-quiz" tabindex="0">
         <h2 id="quiz-heading" class="sr-only">Kuis Interaktif</h2>
 
         <div class="bg-white border border-moss-100 rounded-2xl p-5 sm:p-6">
@@ -249,14 +331,14 @@
               Ada <strong id="quiz-total"></strong> soal pilihan ganda tentang HTML, CSS, dan JavaScript.
               Kamu punya 20 detik untuk tiap soal.
             </p>
-            <button type="button" id="quiz-start-btn" class="btn-primary"><i class="ti ti-player-play"></i> Mulai kuis</button>
+            <button type="button" id="quiz-start-btn" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-player-play"></use></svg> Mulai kuis</button>
           </div>
 
           <!-- Layar soal -->
           <div id="quiz-play" class="hidden space-y-4">
             <div class="flex items-center justify-between text-sm">
               <span>Soal <strong id="quiz-number">1</strong> dari <span id="quiz-count"></span></span>
-              <span class="inline-flex items-center gap-1 font-semibold"><i class="ti ti-clock"></i><span id="quiz-timer">20</span> detik</span>
+              <span class="inline-flex items-center gap-1 font-semibold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-clock"></use></svg><span id="quiz-timer">20</span> detik</span>
             </div>
             <div class="h-2 rounded-full bg-moss-100 overflow-hidden">
               <div id="quiz-progress" class="h-full bg-moss-600 transition-all" style="width:0%"></div>
@@ -272,13 +354,13 @@
             <p class="text-sm text-slate-600">Kuis selesai</p>
             <p class="font-display text-4xl font-extrabold"><span id="quiz-score">0</span> / <span id="quiz-max">0</span></p>
             <p id="quiz-result-note" class="text-slate-600"></p>
-            <button type="button" id="quiz-restart" class="btn-primary"><i class="ti ti-refresh"></i> Ulangi kuis</button>
+            <button type="button" id="quiz-restart" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-refresh"></use></svg> Ulangi kuis</button>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="mt-10 text-xs text-slate-500">
+    <footer class="mt-10 text-xs text-slate-600">
       Praktikum 3 PABWE · data tersimpan di browser (localStorage), tanpa server.
     </footer>
   </div>
@@ -315,7 +397,7 @@
         <p id="ex-edit-error" class="hidden sm:col-span-2 text-sm text-rose-700" role="alert"></p>
         <div class="sm:col-span-2 flex justify-end gap-2 pt-1">
           <button type="button" class="btn-ghost" data-close="modal-expense">Batal</button>
-          <button type="submit" class="btn-primary"><i class="ti ti-device-floppy"></i> Simpan perubahan</button>
+          <button type="submit" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-device-floppy"></use></svg> Simpan perubahan</button>
         </div>
       </form>
     </div>
@@ -346,7 +428,7 @@
         <p id="bm-edit-error" class="hidden text-sm text-rose-700" role="alert"></p>
         <div class="flex justify-end gap-2 pt-1">
           <button type="button" class="btn-ghost" data-close="modal-bookmark">Batal</button>
-          <button type="submit" class="btn-primary"><i class="ti ti-device-floppy"></i> Simpan perubahan</button>
+          <button type="submit" class="btn-primary"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-device-floppy"></use></svg> Simpan perubahan</button>
         </div>
       </form>
     </div>
@@ -362,7 +444,7 @@
       </p>
       <div class="flex justify-end gap-2">
         <button type="button" class="btn-ghost" data-close="modal-delete">Batal</button>
-        <button type="button" id="delete-confirm" class="btn-primary btn-danger"><i class="ti ti-trash"></i> Hapus</button>
+        <button type="button" id="delete-confirm" class="btn-primary btn-danger"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-trash"></use></svg> Hapus</button>
       </div>
     </div>
   </div>
