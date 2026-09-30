@@ -145,7 +145,13 @@ $("#delete-confirm").addEventListener("click", () => {
    TAB SWITCHER
     */
 
-const TAB_KEY = "sakukampus-p3-active-tab";
+/* 
+   TAB SWITCHER
+   Status tab aktif disimpan & dipulihkan lewat query URL (?tab=expense|bookmark|quiz),
+   BUKAN localStorage — supaya bisa dibagikan/dibuka ulang lewat tautan.
+   */
+
+const VALID_TABS = ["expense", "bookmark", "quiz"];
 const tabButtons = $all(".tab-btn");
 const panels = {
   expense: $("#panel-expense"),
@@ -153,21 +159,16 @@ const panels = {
   quiz: $("#panel-quiz"),
 };
 
-/** Pemetaan nama tab ↔ path URL publik (dipakai untuk audit halaman / SPA routing). */
-const TAB_PATHS = {
-  expense: "/pengeluaran",
-  bookmark: "/bookmark",
-  quiz: "/kuis",
-};
-function pathToTab(pathname) {
-  const entry = Object.entries(TAB_PATHS).find(([, path]) => path === pathname);
-  return entry ? entry[0] : "expense"; // "/" atau path tak dikenal → tab default
+/** Baca nilai ?tab= dari URL saat ini; kembalikan "expense" jika tidak valid / tidak ada. */
+function getTabFromUrl() {
+  const value = new URLSearchParams(location.search).get("tab");
+  return VALID_TABS.includes(value) ? value : "expense";
 }
 
 /**
- * Aktifkan satu tab, sembunyikan yang lain, simpan pilihan ke localStorage.
- * updateUrl=true akan mengubah path URL (dipakai saat user klik tab),
- * updateUrl=false dipakai saat inisialisasi awal / navigasi back-forward.
+ * Aktifkan satu tab, sembunyikan yang lain.
+ * updateUrl=true mengganti query string ?tab=... (dipakai saat user klik tab),
+ * updateUrl=false dipakai saat inisialisasi awal / navigasi back-forward (URL sudah benar).
  */
 function switchTab(name, updateUrl = true) {
   if (!panels[name]) name = "expense";
@@ -185,15 +186,12 @@ function switchTab(name, updateUrl = true) {
     btn.classList.toggle("hover:bg-moss-50", !active);
   });
 
-  try {
-    localStorage.setItem(TAB_KEY, name);
-  } catch {
-    /* abaikan */
-  }
-
   if (updateUrl) {
-    const path = TAB_PATHS[name] || "/";
-    if (location.pathname !== path) history.pushState({ tab: name }, "", path);
+    const url = new URL(location.href);
+    url.searchParams.set("tab", name);
+    if (url.search !== location.search) {
+      history.pushState({ tab: name }, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   }
 }
 
@@ -201,8 +199,8 @@ tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
 
-// Tombol back/forward browser tetap membuka tab yang sesuai
-window.addEventListener("popstate", () => switchTab(pathToTab(location.pathname), false));
+// Tombol back/forward browser mengikuti perubahan ?tab= di riwayat
+window.addEventListener("popstate", () => switchTab(getTabFromUrl(), false));
 
 /* 
    FITUR 1 — EXPENSE TRACKER
@@ -792,15 +790,15 @@ showHighScore();
 showQuizScreen("start");
 
 /* 
-   INISIALISASI — pulihkan tab sesuai URL, atau tab terakhir jika di root
+   INISIALISASI — pulihkan tab dari query URL (?tab=...), atau "expense" jika tidak ada
     */
 
-const atRoot = location.pathname === "/" || location.pathname === "";
-const initialTab = atRoot ? localStorage.getItem(TAB_KEY) || "expense" : pathToTab(location.pathname);
+const initialTab = getTabFromUrl();
+switchTab(initialTab, false); // false: jangan pushState dulu, cukup tampilkan panelnya
 
-switchTab(initialTab, false); // false: jangan pushState, cukup ganti path yang sudah ada
-
-// Jika dibuka di "/", ganti URL agar sesuai tab yang dipulihkan (replaceState: tidak menambah riwayat back).
-if (atRoot) {
-  history.replaceState({ tab: initialTab }, "", TAB_PATHS[initialTab] || "/");
+// Normalisasi URL agar selalu mencantumkan ?tab=... (replaceState: tidak menambah riwayat back).
+const normalizedUrl = new URL(location.href);
+normalizedUrl.searchParams.set("tab", initialTab);
+if (normalizedUrl.search !== location.search) {
+  history.replaceState({ tab: initialTab }, "", `${normalizedUrl.pathname}${normalizedUrl.search}${normalizedUrl.hash}`);
 }
